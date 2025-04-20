@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\oli\Documents\GitHub\aBot-Master\1.0\build\CMakeFiles\23202f1a8c940c11a1f0acfcd84f7a00\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{4056393C-1D4F-33D8-8B03-382ED9197787}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
