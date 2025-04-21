@@ -24,13 +24,15 @@ bool disable_death_effects = true;
 
 bool show = false;
 bool inited = false;
+bool sortWindows = true;
+bool sortWindows2 = true;
 
 bool isRecording;
 
 const char* converterTypes[]{ "Plain Text (.txt)" };
 int converterType = 0;
 
-vector<string> items = { "General", "Assist", "Editor", "Sequence", "Converter", "Hacks", "About" };
+vector<string> items = { "General", "Assist", "Editor", "Sequence", "Converter", "Hacks", "Settings" };
 int item_current_idx = 0;
 
 int replay_select_player_p1 = 1;
@@ -42,11 +44,6 @@ bool openned = false;
 
 bool overwrite = false;
 bool loading = false;
-
-// Add this section at the top of your file
-#include "hwid.h"
-#include <imgui.h>
-#include <windows.h>
 
 static bool showLogin = true;
 static char username[64] = "";
@@ -61,15 +58,10 @@ void BlockAltKey() {
 }
 
 void RenderLogin() {
-    ImGuiIO& io = ImGui::GetIO();
-    ImVec2 center(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.2f);
-    ImVec2 winSize(300, 160);
-    ImVec2 winPos(center.x - winSize.x * 0.5f, center.y - winSize.y * 0.5f);
-
-    ImGui::SetNextWindowSize(winSize);
-    ImGui::SetNextWindowPos(winPos);
 
     ImGui::Begin("aBot Login", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    
+    ImGui::SetWindowSize(ImVec2(250,100));
 
     ImGui::InputText("Username", username, IM_ARRAYSIZE(username));
     ImGui::InputText("Password", password, IM_ARRAYSIZE(password), ImGuiInputTextFlags_Password);
@@ -146,35 +138,34 @@ void RenderMain() {
         if (ImGui::BeginChild("##RigthSide", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), true))
         {
             if (item_current_idx == 0) {
-                if (ImGui::RadioButton("Disable", &playLayer::mode, 0)) {
-                    playLayer::checkpoints_p1.clear();
-                    playLayer::checkpoints_p2.clear();
-                }
-
-                ImGui::SameLine();
-
-                if (ImGui::RadioButton("Record", &playLayer::mode, 1)) {
-                    if (practice_music_hack && anticheat_bypass) {
-                        playLayer::replay_p1.clear();
-                        playLayer::replay_p2.clear();
+                int currentMode = playLayer::mode;
+                const char* modes[] = { "Disabled", "Record", "Playback" };
+                if (ImGui::Combo("Mode", &currentMode, modes, IM_ARRAYSIZE(modes))) {
+                    if (currentMode == 0) { // Disabled
                         playLayer::checkpoints_p1.clear();
                         playLayer::checkpoints_p2.clear();
                     }
-                    else {
-                        playLayer::mode = 0;
+                    else if (currentMode == 1) { // Record
+                        if (practice_music_hack && anticheat_bypass) {
+                            playLayer::replay_p1.clear();
+                            playLayer::replay_p2.clear();
+                            playLayer::checkpoints_p1.clear();
+                            playLayer::checkpoints_p2.clear();
+                        } else {
+                            currentMode = 0;
+                        }
+                    }
+                    // No special logic needed for Playback
+                    playLayer::mode = currentMode;
+                }
+                
+                if (currentMode == 1 && (!practice_music_hack || !anticheat_bypass)) {
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("To record, please enable \"Practice Music Hack\" and \"Anticheat bypass\"");
                     }
                 }
-
-                if (!practice_music_hack || !anticheat_bypass) {
-                    if (ImGui::IsItemHovered())
-                        ImGui::SetTooltip("To record, please enable \"Practice Music Hack\" and \"Anticheat bypass\"");
-                }
-
-                ImGui::SameLine();
-
-                ImGui::RadioButton("Playback", &playLayer::mode, 2);
-
-                ImGui::Separator();
+                
+                ImGui::Separator();                
 
                 ImGui::InputText("##replayinput", replay_name, IM_ARRAYSIZE(replay_name));
                 auto itemx = ImGui::GetItemRectMin().x;
@@ -204,8 +195,18 @@ void RenderMain() {
                     ImGui::End();
                     ImGui::PopStyleVar();
                 }
+                
+                if (ImGui::Button("Save", {135.f, 24.f})) {
+                    std::string filename = (std::string)replay_name;
+                    if (!filename.ends_with(".replay"))
+                        filename += ".replay";
+                
+                    playLayer::saveReplay(".aBot/" + filename);
+                }
 
-                if (ImGui::Button("Load", { 60, NULL })) {
+                ImGui::SameLine();
+                
+                if (ImGui::Button("Load", {135.f, 24.f})) {
                     std::string filename = (std::string)replay_name;
                     if (!filename.ends_with(".replay"))
                         filename += ".replay";
@@ -222,48 +223,8 @@ void RenderMain() {
                 
                 if (overwrite) {
                     ConfirmMessage(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y + 4);
-                }
-                
-                ImGui::SameLine();
-                
-                if (ImGui::Button("Save", { 60, NULL })) {
-                    std::string filename = (std::string)replay_name;
-                    if (!filename.ends_with(".replay"))
-                        filename += ".replay";
-                
-                    playLayer::saveReplay(".aBot/" + filename);
-                }                
+                }       
 
-                ImGui::SameLine();
-                if (ImGui::Button("Clear Replay", { 80, NULL })) {
-                    if (playLayer::replay_p1.empty()) playLayer::clearMacro();
-                    else {
-                        overwrite = true;
-                        loading = false;
-                    }
-                }
-                ImGui::Separator();
-
-                ImGui::PushItemWidth(160.f);
-                ImGui::DragFloat("##FPS", &FPSMultiplier::g_target_fps, 1.f, 1.f, FLT_MAX, "FPS: %.2f");
-
-                ImGui::SameLine();
-
-                ImGui::PushItemWidth(160.f);
-                if (ImGui::DragFloat("##Speed", &playLayer::speedvalue, 0.01f, 0.f, FLT_MAX, "Speed: %.2f")) {
-                    if (playLayer::speedvalue != 0) { CCDirector::sharedDirector()->getScheduler()->setTimeScale(playLayer::speedvalue); }
-                }
-
-                ImGui::Separator();
-                ImGui::Checkbox("Practice Fix", &playLayer::practice_fix);
-                ImGui::SameLine();
-                ImGui::Checkbox("Physics Change", &playLayer::accuracy_fix);
-                if (playLayer::accuracy_fix) { ImGui::SameLine(); ImGui::Checkbox("Rotation Fix", &playLayer::rotation_fix); }
-                ImGui::Separator();
-                ImGui::Checkbox("FPS Bypass", &FPSMultiplier::fpsbypass_enabled);
-                ImGui::SameLine();
-                ImGui::Checkbox("Lock Delta on Playback", &FPSMultiplier::g_enabled);
-                ImGui::Separator();
                 ImGui::Checkbox("Ignore Inputs on Playback", &playLayer::ignore_input);
                 ImGui::Separator();
                 ImGui::Text("Frame: %i", playLayer::frame);
@@ -271,24 +232,23 @@ void RenderMain() {
             }
 
             if (item_current_idx == 1) {
-                ImGui::Checkbox("Frame Advance", &FPSMultiplier::frame_advance);
+                
+                ImGui::DragFloat("##FPS", &FPSMultiplier::g_target_fps, 1.f, 1.f, FLT_MAX, "FPS: %.2f");
+                    FPSMultiplier::g_enabled = true;
+
                 ImGui::Separator();
-                ImGui::Checkbox("Spam Bot", &spambot::enable);
+
+                if (ImGui::DragFloat("##Speed", &playLayer::speedvalue, 0.01f, 0.f, FLT_MAX, "Speed: %.2f")) {
+                
+                }
 
                 ImGui::SameLine();
-                ImGui::PushItemWidth(100.f);
-                ImGui::DragInt("##spampush", &spambot::push, 1, 1, INT_MAX, "Push: %i");
-
-                ImGui::SameLine();
-                ImGui::PushItemWidth(100.f);
-                ImGui::DragInt("##spamreelase", &spambot::release, 1, 1, INT_MAX, "Release: %i");
-
-                ImGui::Checkbox("1 Player", &spambot::player1);
-                ImGui::SameLine();
-                ImGui::Checkbox("2 Player", &spambot::player2);
-                ImGui::Separator();
-                ImGui::Checkbox("Dual Clicks", &playLayer::dual_clicks);
-
+                if (ImGui::Button("Set Speed")) {
+                    
+                    if (playLayer::speedvalue != 0) {
+                        CCDirector::sharedDirector()->getScheduler()->setTimeScale(playLayer::speedvalue); 
+                    }
+                }
             }
 
             if (item_current_idx == 2) {
@@ -514,21 +474,16 @@ void RenderMain() {
             }
 
             if (item_current_idx == 6) {
-                ImGui::Text("aBot Version: 0.2.0");
-                ImGui::Text("aBot Engine version: 2.0.1");
-                ImGui::Text("aBot created by adf.");
+                ImGui::Checkbox("Practice Fix", &playLayer::practice_fix);
                 ImGui::Separator();
-                ImGui::Text("Left Alt / Right Alt - Toggle UI");
-                ImGui::Text("C - Enable Frame Advance + Next Frame");
-                ImGui::Text("F - Disable Frame Advance");
-                ImGui::Text("P - Toggle Playback");
-                ImGui::Text("S - Toggle Spambot");
+                ImGui::Checkbox("Physics Change", &playLayer::accuracy_fix);
                 ImGui::Separator();
-                ImGui::Text("Special Thanks:");
-                ImGui::Text("alexander");
+                if (playLayer::accuracy_fix) { 
+                ImGui::Checkbox("Rotation Fix", &playLayer::rotation_fix); }
                 ImGui::Separator();
-                if (ImGui::MenuItem("Discord Server")) ShellExecuteA(0, "open", "https://discord.gg/9RvQCjgEUf", 0, 0, SW_SHOWNORMAL);
-                if (ImGui::MenuItem("ImGui")) ShellExecuteA(0, "open", "https://github.com/ocornut/imgui", 0, 0, SW_SHOWNORMAL);
+                ImGui::Checkbox("FPS Bypass", &FPSMultiplier::fpsbypass_enabled);
+                ImGui::Separator();
+                ImGui::Checkbox("Lock Delta on Playback", &FPSMultiplier::g_enabled);
             }
         }
 
