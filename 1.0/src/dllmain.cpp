@@ -58,13 +58,13 @@ void RenderLogin() {
 
     ImGui::Begin("aBot Login", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     
-    auto windowSize = ImGui::GetWindowSize();
-    ImVec2 btnSize = {windowSize.x - 18, 24.f};
+    ImGui::SetWindowSize(ImVec2(250,100));
+    ImGui::SetWindowPos(ImVec2(800,10));
 
     ImGui::InputText("Username", username, IM_ARRAYSIZE(username));
     ImGui::InputText("Password", password, IM_ARRAYSIZE(password), ImGuiInputTextFlags_Password);
 
-    if (ImGui::Button("Login", btnSize)) {
+    if (ImGui::Button("Login")) {
         std::string hwid = GetHWID();
         if (!CheckCredentialsOnline(username, password, hwid)) {
             strcpy_s(loginError, "Invalid Credentials");
