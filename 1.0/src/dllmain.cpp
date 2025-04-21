@@ -164,8 +164,18 @@ void RenderMain() {
                         ImGui::SetTooltip("To record, please enable \"Practice Music Hack\" and \"Anticheat bypass\"");
                     }
                 }
+
+                ImGui::Checkbox("Ignore Inputs on Playback", &playLayer::ignore_input);
                 
-                ImGui::Separator();                
+                ImGui::Separator();    
+                
+                ImGui::Text("Frame:");
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255)); // Yellow
+                ImGui::Text("%i", playLayer::frame);
+                ImGui::PopStyleColor();             
+
+                ImGui::Separator();
 
                 ImGui::InputText("##replayinput", replay_name, IM_ARRAYSIZE(replay_name));
                 auto itemx = ImGui::GetItemRectMin().x;
@@ -223,12 +233,8 @@ void RenderMain() {
                 
                 if (overwrite) {
                     ConfirmMessage(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y + 4);
-                }       
+                }     
 
-                ImGui::Checkbox("Ignore Inputs on Playback", &playLayer::ignore_input);
-                ImGui::Separator();
-                ImGui::Text("Frame: %i", playLayer::frame);
-                ImGui::Text("Replay Size: %i (P2: %i)", (int)playLayer::replay_p1.size(), (int)playLayer::replay_p2.size());
             }
 
             if (item_current_idx == 1) {
