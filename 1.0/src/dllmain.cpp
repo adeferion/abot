@@ -32,9 +32,6 @@ bool isRecording;
 const char* converterTypes[]{ "Plain Text (.txt)" };
 int converterType = 0;
 
-vector<string> items = { "General", "Assist", "Editor", "Sequence", "Converter", "Hacks", "Settings" };
-int item_current_idx = 0;
-
 int replay_select_player_p1 = 1;
 int replay_current = 0;
 
@@ -59,7 +56,7 @@ void BlockAltKey() {
 
 void RenderLogin() {
 
-    ImGui::Begin("aBot Login", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin("aBot Login", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     
     ImGui::SetWindowSize(ImVec2(250,100));
 
@@ -108,36 +105,19 @@ void RenderMain() {
     CCDirector::sharedDirector()->getTouchDispatcher()->setDispatchEvents(!ImGui::GetIO().WantCaptureMouse);
 
     if (show) {
-        ImGui::Begin("aBot Beta", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGui::Begin("General", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
         if (!inited) {
-            ImVec2 displaySize = ImGui::GetIO().DisplaySize;
-            ImVec2 windowSize(500, 300);
-            ImVec2 centerPos(displaySize.x * 0.5f - windowSize.x * 0.5f, displaySize.y * 0.5f - windowSize.y * 0.5f);
-            ImGui::SetWindowPos(centerPos);
-            ImGui::SetWindowSize(windowSize);
+            ImGui::SetWindowSize(ImVec2(230,350));
+            if (sortWindows || sortWindows2)
+                ImGui::SetWindowPos(ImVec2(10, 10));
             inited = true;
-        }
-
-        if (ImGui::BeginChild("##LeftSide", ImVec2(120, ImGui::GetContentRegionAvail().y), true))
-        {
-            for (int i = 0; i < (int)items.size(); i++)
-            {
-                const bool is_selected = (item_current_idx == i);
-                if (ImGui::Selectable(items[i].c_str(), is_selected))
-                    item_current_idx = i;
-
-                if (is_selected)
-                    ImGui::SetItemDefaultFocus();
-            }
-            ImGui::EndChild();
         }
 
         ImGui::SameLine();
 
         if (ImGui::BeginChild("##RigthSide", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), true))
         {
-            if (item_current_idx == 0) {
                 int currentMode = playLayer::mode;
                 const char* modes[] = { "Disabled", "Record", "Playback" };
                 if (ImGui::Combo("Mode", &currentMode, modes, IM_ARRAYSIZE(modes))) {
@@ -213,8 +193,6 @@ void RenderMain() {
                 
                     playLayer::saveReplay(".aBot/" + filename);
                 }
-
-                ImGui::SameLine();
                 
                 if (ImGui::Button("Load", {135.f, 24.f})) {
                     std::string filename = (std::string)replay_name;
@@ -235,78 +213,85 @@ void RenderMain() {
                     ConfirmMessage(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y + 4);
                 }     
 
-            }
+                    ImGui::Begin("Assist", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-            if (item_current_idx == 1) {
+                    ImGui::SetWindowSize(ImVec2(230,185));
+                    if (sortWindows || sortWindows2)
+                        ImGui::SetWindowPos(ImVec2(250, 10));
                 
-                ImGui::DragFloat("##FPS", &FPSMultiplier::g_target_fps, 1.f, 1.f, FLT_MAX, "FPS: %.2f");
+                    ImGui::DragFloat("##FPS", &FPSMultiplier::g_target_fps, 1.f, 1.f, FLT_MAX, "FPS: %.2f");
                     FPSMultiplier::g_enabled = true;
-
-                ImGui::Separator();
-
-                if (ImGui::DragFloat("##Speed", &playLayer::speedvalue, 0.01f, 0.f, FLT_MAX, "Speed: %.2f")) {
                 
-                }
+                    ImGui::Separator();
+                
+                    if (ImGui::DragFloat("##Speed", &playLayer::speedvalue, 0.01f, 0.f, FLT_MAX, "Speed: %.2f")) {
+                        // Optional: handle value change
+                    }
+                
+                    if (ImGui::Button("Set Speed")) {
+                        if (playLayer::speedvalue != 0) {
+                            CCDirector::sharedDirector()->getScheduler()->setTimeScale(playLayer::speedvalue); 
+                        }
+                    }
+                
+                    ImGui::End();               
 
-                ImGui::SameLine();
-                if (ImGui::Button("Set Speed")) {
+                    ImGui::Begin("Editor", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+                    ImGui::SetWindowSize(ImVec2(400,350));
+                    if (sortWindows)
+                        ImGui::SetWindowPos(ImVec2(490, 10));
+
+                    if (ImGui::BeginChild("##LeftSideEditor", ImVec2(120, ImGui::GetContentRegionAvail().y), true)) {
+                        for (int i = 0; i < (int)playLayer::replay_p1.size(); i++) {
+                            const bool is_selected = (replay_current == i);
+                            ImGui::PushItemWidth(120.f);
+                            if (ImGui::Selectable(to_string(playLayer::replay_p1[i].frame).c_str(), is_selected))
+                                replay_current = i;
                     
-                    if (playLayer::speedvalue != 0) {
-                        CCDirector::sharedDirector()->getScheduler()->setTimeScale(playLayer::speedvalue); 
+                            if (is_selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndChild();
                     }
-                }
-            }
-
-            if (item_current_idx == 2) {
-                if (ImGui::BeginChild("##LeftSideEditor", ImVec2(120, ImGui::GetContentRegionAvail().y), true))
-                {
-                    for (int i = 0; i < (int)playLayer::replay_p1.size(); i++)
-                    {
-                        const bool is_selected = (replay_current == i);
-                        ImGui::PushItemWidth(120.f);
-                        if (ImGui::Selectable(to_string(playLayer::replay_p1[i].frame).c_str(), is_selected))
-                            replay_current = i;
-
-                        if (is_selected)
-                            ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndChild();
-                }
-
-
-                ImGui::SameLine();
-
-                if (ImGui::BeginChild("##RightSideEditor", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), true))
-                {
-                    if (!playLayer::replay_p1.empty() && replay_select_player_p1) {
-                        ImGui::DragFloat("##POSXP1", &playLayer::replay_p1[replay_current].pos_x, 0.000001f, -1, FLT_MAX, "Position X: %f");
-                        ImGui::DragFloat("##POSYP1", &playLayer::replay_p1[replay_current].pos_y, 0.000001f, -1, FLT_MAX, "Position Y: %f");
-                        ImGui::DragFloat("##ROTATEP1", &playLayer::replay_p1[replay_current].rotation, 0.000001f, -1, FLT_MAX, "Rotation: %f");
-                        ImGui::DragFloat("##YVELP1", &playLayer::replay_p1[replay_current].y_vel, 0.000001f, -1, FLT_MAX, "Y Vel: %f");
-                        ImGui::DragInt("##DOWNP1", &playLayer::replay_p1[replay_current].down, 1, -1, 1, "Down: %i");
-                    }
-
-                    if (!playLayer::replay_p2.empty() && !replay_select_player_p1) {
-                        ImGui::DragFloat("##POSXP2", &playLayer::replay_p2[replay_current].pos_x, 0.000001f, -1, FLT_MAX, "Position X: %f");
-                        ImGui::DragFloat("##POSYP2", &playLayer::replay_p2[replay_current].pos_y, 0.000001f, -1, FLT_MAX, "Position Y: %f");
-                        ImGui::DragFloat("##ROTATEP2", &playLayer::replay_p2[replay_current].rotation, 0.000001f, -1, FLT_MAX, "Rotation: %f");
-                        ImGui::DragFloat("##YVELP2", &playLayer::replay_p2[replay_current].y_vel, 0.000001f, -1, FLT_MAX, "Y Vel: %f");
-                        ImGui::DragInt("##DOWNP2", &playLayer::replay_p2[replay_current].down, 1, -1, 1, "Down: %i");
-                    }
-                    ImGui::Text("Note: -1 value does nothing with\nplayer");
-                    ImGui::Separator();
-                    ImGui::RadioButton("Player 1", &replay_select_player_p1, 1);
+                    
                     ImGui::SameLine();
-                    ImGui::RadioButton("Player 2", &replay_select_player_p1, 0);
-                    ImGui::Separator();
-                    ImGui::EndChild();
-                }
-            }
+                    
+                    if (ImGui::BeginChild("##RightSideEditor", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), true)) {
+                        if (!playLayer::replay_p1.empty() && replay_select_player_p1) {
+                            ImGui::DragFloat("##POSXP1", &playLayer::replay_p1[replay_current].pos_x, 0.000001f, -1, FLT_MAX, "Position X: %f");
+                            ImGui::DragFloat("##POSYP1", &playLayer::replay_p1[replay_current].pos_y, 0.000001f, -1, FLT_MAX, "Position Y: %f");
+                            ImGui::DragFloat("##ROTATEP1", &playLayer::replay_p1[replay_current].rotation, 0.000001f, -1, FLT_MAX, "Rotation: %f");
+                            ImGui::DragFloat("##YVELP1", &playLayer::replay_p1[replay_current].y_vel, 0.000001f, -1, FLT_MAX, "Y Vel: %f");
+                            ImGui::DragInt("##DOWNP1", &playLayer::replay_p1[replay_current].down, 1, -1, 1, "Down: %i");
+                        }
+                    
+                        if (!playLayer::replay_p2.empty() && !replay_select_player_p1) {
+                            ImGui::DragFloat("##POSXP2", &playLayer::replay_p2[replay_current].pos_x, 0.000001f, -1, FLT_MAX, "Position X: %f");
+                            ImGui::DragFloat("##POSYP2", &playLayer::replay_p2[replay_current].pos_y, 0.000001f, -1, FLT_MAX, "Position Y: %f");
+                            ImGui::DragFloat("##ROTATEP2", &playLayer::replay_p2[replay_current].rotation, 0.000001f, -1, FLT_MAX, "Rotation: %f");
+                            ImGui::DragFloat("##YVELP2", &playLayer::replay_p2[replay_current].y_vel, 0.000001f, -1, FLT_MAX, "Y Vel: %f");
+                            ImGui::DragInt("##DOWNP2", &playLayer::replay_p2[replay_current].down, 1, -1, 1, "Down: %i");
+                        }
+                    
+                        ImGui::Text("Note: -1 value does nothing with\nplayer");
+                        ImGui::Separator();
+                        ImGui::RadioButton("Player 1", &replay_select_player_p1, 1);
+                        ImGui::SameLine();
+                        ImGui::RadioButton("Player 2", &replay_select_player_p1, 0);
+                        ImGui::Separator();
+                        ImGui::EndChild();
+                    }
 
-            if (item_current_idx == 4) {
-                ImGui::Combo("##ConverterType", &converterType, converterTypes, IM_ARRAYSIZE(converterTypes));
-                if (ImGui::Button("Convert")) {
-                    if (converterType == 0) {
+                    ImGui::Begin("Converter", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+                    ImGui::SetWindowSize(ImVec2(230,185));
+                    if (sortWindows)
+                        ImGui::SetWindowPos(ImVec2(900, 10));
+
+                    ImGui::Combo("##ConverterType", &converterType, converterTypes, IM_ARRAYSIZE(converterTypes));
+                    
+                    if (ImGui::Button("Convert")) {
                         if (converterType == 0) {
                             std::ofstream out(".aBot/converted.txt");
                             out << FPSMultiplier::g_target_fps << "\n";
@@ -318,168 +303,116 @@ void RenderMain() {
                             out.close();
                         }
                     }
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("ILL Replay Converter")) {
-                    ShellExecuteA(0, "open", "https://zodiac-ill.github.io/gd-macro-converter/", 0, 0, SW_SHOWNORMAL);
-                }
-                if (converterType == 0) {
-                    ImGui::Text("Replay will be saved to \".aBot/converted.txt\"");
-                }
-            }
+                    
+                    ImGui::SameLine();
+                    
+                    if (ImGui::Button("ILL Replay Converter")) {
+                        ShellExecuteA(0, "open", "https://zodiac-ill.github.io/gd-macro-converter/", 0, 0, SW_SHOWNORMAL);
+                    }
+                    
+                    if (converterType == 0) {
+                        ImGui::Text("Replay will be saved to \".aBot/converted.txt\"");
+                    }
 
-            if (item_current_idx == 3) {
-                ImGui::Checkbox("Toggle Sequential Play", &playLayer::enable_sqp);
-                ImGui::SameLine();
-                ImGui::Checkbox("Random Replay", &playLayer::random_sqp);
-                ImGui::InputText("##replayinputinsqp", replay_name, IM_ARRAYSIZE(replay_name));
-                auto itemx = ImGui::GetItemRectMin().x;
-                auto itemy = ImGui::GetItemRectMax().y;
-                auto itemw = ImGui::GetItemRectSize().x;
-                ImGui::SameLine();
-                if (ImGui::ArrowButton("##comboopeninsqp", openned ? ImGuiDir_Up : ImGuiDir_Down)) {
-                    openned = !openned;
-                    if (openned) {
-                        replay_list.clear();
-                        for (const auto& entry : filesystem::directory_iterator(".aBot")) {
-                            replay_list.push_back(entry.path().filename().string());
+                    ImGui::Begin("Mods", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+                    ImGui::SetWindowSize(ImVec2(230,200));
+                    if (sortWindows) {
+                        ImGui::SetWindowPos(ImVec2(900, 10));
+                        sortWindows = false;
+                    }
+
+                    if (ImGui::Checkbox("NoClip", &noclip)) {
+                        if (noclip) {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20A23C), "\xE9\x79\x06\x00\x00", 5, NULL);
+                        } else {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20A23C), "\x6A\x14\x8B\xCB\xFF", 5, NULL);
                         }
                     }
-                }
-                if (openned) {
-                    ImGui::SetNextWindowPos(ImVec2(itemx, itemy + 4));
-                    ImGui::SetNextWindowSize(ImVec2(itemw + ImGui::GetItemRectSize().x, NULL));
-                    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1);
-                    ImGui::Begin("##MacroListInSQP", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-                    for (int i = 0; i < (int)replay_list.size(); i++) {
-                        if (ImGui::MenuItem(replay_list[i].c_str())) {
-                            strcpy_s(replay_name, replay_list[i].c_str());
-                            openned = false;
+                    
+                    if (ImGui::Checkbox("Practice Music Hack", &practice_music_hack)) {
+                        if (practice_music_hack) {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20C925), "\x90\x90\x90\x90\x90\x90", 6, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20D143), "\x90\x90", 2, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20A563), "\x90\x90", 2, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20A595), "\x90\x90", 2, NULL);
+                        } else {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20C925), "\x0F\x85\xF7\x00\x00\x00", 6, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20D143), "\x75\x41", 2, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20A563), "\x75\x3E", 2, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20A595), "\x75\x0C", 2, NULL);
                         }
                     }
-                    ImGui::End();
-                    ImGui::PopStyleVar();
-                }
+                    
+                    if (ImGui::Checkbox("Ignore ESC", &ignore_esc)) {
+                        if (ignore_esc) {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1E644C), "\x90\x90\x90\x90\x90", 5, NULL);
+                        } else {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1E644C), "\xE8\xBF\x73\x02\x00", 5, NULL);
+                        }
+                    }
+                    
+                    if (ImGui::Checkbox("No Respawn Flash", &no_respawn_flash)) {
+                        if (no_respawn_flash) {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1EF36D), "\xE9\xA8\x00\x00\x00\x90", 6, NULL);
+                        } else {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1EF36D), "\x0F\x85\xA7\x00\x00\x00", 6, NULL);
+                        }
+                    }
+                    
+                    if (ImGui::Checkbox("Disable Death Effects", &disable_death_effects)) {
+                        if (disable_death_effects) {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1EFBA4), "\x90\x90\x90\x90\x90", 5, NULL);
+                        } else {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1EFBA4), "\xE8\x37\x00\x00\x00", 5, NULL);
+                        }
+                    }
+                    
+                    if (ImGui::Checkbox("Practice Coins", &practice_coins)) {
+                        if (practice_coins) {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x204F10), "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 13, NULL);
+                        } else {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x204F10), "\x80\xBE\x95\x04\x00\x00\x00\x0F\x85\xDE\x00\x00\x00", 13, NULL);
+                        }
+                    }
+                    
+                    if (ImGui::Checkbox("Anticheat Bypass", &anticheat_bypass)) {
+                        if (anticheat_bypass) {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x202AAA), "\xEB\x2E", 2, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x15FC2E), "\xEB", 1, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20D3B3), "\x90\x90\x90\x90\x90", 5, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FF7A2), "\x90\x90", 2, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x18B2B4), "\xB0\x01", 2, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20C4E6), "\xE9\xD7\x00\x00\x00\x90", 6, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD557), "\xEB\x0C", 2, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD742), "\xC7\x87\xE0\x02\x00\x00\x01\x00\x00\x00\xC7\x87\xE4\x02\x00\x00\x00\x00\x00\x00\x90\x90\x90\x90\x90\x90", 26, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD756), "\x90\x90\x90\x90\x90\x90", 6, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD79A), "\x90\x90\x90\x90\x90\x90", 6, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD7AF), "\x90\x90\x90\x90\x90\x90", 6, NULL);
+                        } else {
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x202AAA), "\x74\x2E", 2, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x15FC2E), "\x74", 1, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20D3B3), "\xE8\x58\x04\x00\x00", 5, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FF7A2), "\x74\x6E", 2, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x18B2B4), "\x88\xD8", 2, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20C4E6), "\x0F\x85\xD6\x00\x00\x00", 6, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD557), "\x74\x0C", 2, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD742), "\x80\xBF\xDD\x02\x00\x00\x00\x0F\x85\x0A\xFE\xFF\xFF\x80\xBF\x34\x05\x00\x00\x00\x0F\x84\xFD\xFD\xFF\xFF", 26, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD756), "\x0F\x84\xFD\xFD\xFF\xFF", 6, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD79A), "\x0F\x84\xB9\xFD\xFF\xFF", 6, NULL);
+                            WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD7AF), "\x0F\x85\xA4\xFD\xFF\xFF", 6, NULL);
+                        }
+                    }
 
-                ImGui::SameLine();
+            ImGui::Begin("Settings", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse); {
 
-                if (ImGui::Button("Add")) {
-                    playLayer::macro_sqp.push_back((string)replay_name);
-                }
-
-                ImGui::Text("Current Replay %i/%i", playLayer::sqp_current_idx + 1, playLayer::macro_sqp.size());
-
-                if (ImGui::BeginChild("##SQPPanel", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), true))
+                ImGui::SetWindowSize(ImVec2(230,200));
+                if (sortWindows || sortWindows2)
                 {
-                    for (int i = 0; i < (int)playLayer::macro_sqp.size(); i++)
-                    {
-                        if (ImGui::MenuItem(playLayer::macro_sqp[i].c_str())) {
-                            playLayer::macro_sqp.erase(playLayer::macro_sqp.begin() + i);
-                        }
-                    }
-                    ImGui::EndChild();
+                    ImGui::SetWindowPos(ImVec2(250, 205));
+                    sortWindows2 = false;
                 }
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("Clear All")) {
-                    playLayer::macro_sqp.clear();
-                }
-            }
-
-            if (item_current_idx == 5) {
-                if (ImGui::Checkbox("NoClip", &noclip)) {
-                    if (noclip) {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20A23C), "\xE9\x79\x06\x00\x00", 5, NULL);
-                    }
-                    else {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20A23C), "\x6A\x14\x8B\xCB\xFF", 5, NULL);
-                    }
-                }
-
-                if (ImGui::Checkbox("Practice Music Hack", &practice_music_hack)) {
-                    if (practice_music_hack) {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20C925), "\x90\x90\x90\x90\x90\x90", 6, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20D143), "\x90\x90", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20A563), "\x90\x90", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20A595), "\x90\x90", 2, NULL);
-                    }
-                    else {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20C925), "\x0F\x85\xF7\x00\x00\x00", 6, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20D143), "\x75\x41", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20A563), "\x75\x3E", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20A595), "\x75\x0C", 2, NULL);
-                    }
-                }
-
-                if (ImGui::Checkbox("Ignore ESC", &ignore_esc)) {
-                    if (ignore_esc) {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1E644C), "\x90\x90\x90\x90\x90", 5, NULL);
-                    }
-                    else {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1E644C), "\xE8\xBF\x73\x02\x00", 5, NULL);
-                    }
-                }
-
-                if (ImGui::Checkbox("No Respawn Flash", &no_respawn_flash)) {
-                    if (no_respawn_flash) {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1EF36D), "\xE9\xA8\x00\x00\x00\x90", 6, NULL);
-                    }
-                    else {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1EF36D), "\x0F\x85\xA7\x00\x00\x00", 6, NULL);
-                    }
-                }
-
-                if (ImGui::Checkbox("Disable Death Effects", &disable_death_effects)) {
-                    if (disable_death_effects) {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1EFBA4), "\x90\x90\x90\x90\x90", 5, NULL);
-                    }
-                    else {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1EFBA4), "\xE8\x37\x00\x00\x00", 5, NULL);
-                    }
-                }
-
-                if (ImGui::Checkbox("Practice Coins", &practice_coins)) {
-                    if (practice_coins) {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x204F10), "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 13, NULL);
-                    }
-                    else {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x204F10), "\x80\xBE\x95\x04\x00\x00\x00\x0F\x85\xDE\x00\x00\x00", 13, NULL);
-                    }
-                }
-
-                if (ImGui::Checkbox("Anticheat Bypass", &anticheat_bypass)) {
-                    if (anticheat_bypass) {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x202AAA), "\xEB\x2E", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x15FC2E), "\xEB", 1, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20D3B3), "\x90\x90\x90\x90\x90", 5, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FF7A2), "\x90\x90", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x18B2B4), "\xB0\x01", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20C4E6), "\xE9\xD7\x00\x00\x00\x90", 6, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD557), "\xEB\x0C", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD742), "\xC7\x87\xE0\x02\x00\x00\x01\x00\x00\x00\xC7\x87\xE4\x02\x00\x00\x00\x00\x00\x00\x90\x90\x90\x90\x90\x90", 26, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD756), "\x90\x90\x90\x90\x90\x90", 6, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD79A), "\x90\x90\x90\x90\x90\x90", 6, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD7AF), "\x90\x90\x90\x90\x90\x90", 6, NULL);
-                    }
-                    else {
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x202AAA), "\x74\x2E", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x15FC2E), "\x74", 1, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20D3B3), "\xE8\x58\x04\x00\x00", 5, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FF7A2), "\x74\x6E", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x18B2B4), "\x88\xD8", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x20C4E6), "\x0F\x85\xD6\x00\x00\x00", 6, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD557), "\x74\x0C", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD742), "\x80\xBF\xDD\x02\x00\x00\x00\x0F\x85\x0A\xFE\xFF\xFF\x80\xBF\x34\x05\x00\x00\x00\x0F\x84\xFD\xFD\xFF\xFF", 26, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD557), "\x74\x0C", 2, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD756), "\x0F\x84\xFD\xFD\xFF\xFF", 6, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD79A), "\x0F\x84\xB9\xFD\xFF\xFF", 6, NULL);
-                        WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(gd::base + 0x1FD7AF), "\x0F\x85\xA4\xFD\xFF\xFF", 6, NULL);
-                    }
-                }
-            }
-
-            if (item_current_idx == 6) {
+               
                 ImGui::Checkbox("Practice Fix", &playLayer::practice_fix);
                 ImGui::Separator();
                 ImGui::Checkbox("Physics Change", &playLayer::accuracy_fix);
