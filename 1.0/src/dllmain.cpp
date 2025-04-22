@@ -27,6 +27,8 @@ bool inited = false;
 bool sortWindows = true;
 bool sortWindows2 = true;
 
+ImVec2 buttonSize = {230.f - 18.f, 24.f};
+
 bool isRecording;
 
 const char* converterTypes[]{ "Plain Text (.txt)" };
@@ -114,91 +116,104 @@ void RenderMain() {
                 ImGui::SetWindowPos(ImVec2(10, 10));
             inited = true;
         }
-
-        ImGui::SameLine();
-
-        if (ImGui::BeginChild("##RigthSide", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), true))
+        
+        // Get the window width and calculate the offset to center elements
+        float window_width = ImGui::GetWindowWidth();
+        float content_width = ImGui::GetContentRegionAvail().x;
+        float offset = (window_width - content_width) * 0.5f; // This will center the content
+        
+        // Start from the center and then adjust the positioning for each element
+        ImGui::SetCursorPosX(offset);
+        
+        if (ImGui::BeginChild("##RigthSide", ImVec2(content_width, ImGui::GetContentRegionAvail().y), true))
         {
-                int currentMode = playLayer::mode;
-                const char* modes[] = { "Disabled", "Record", "Playback" };
-                if (ImGui::Combo("Mode", &currentMode, modes, IM_ARRAYSIZE(modes))) {
-                    if (currentMode == 0) { // Disabled
+            int currentMode = playLayer::mode;
+            const char* modes[] = { "Disabled", "Record", "Playback" };
+            if (ImGui::Combo("Mode", &currentMode, modes, IM_ARRAYSIZE(modes))) {
+                if (currentMode == 0) { // Disabled
+                    playLayer::checkpoints_p1.clear();
+                    playLayer::checkpoints_p2.clear();
+                }
+                else if (currentMode == 1) { // Record
+                    if (practice_music_hack && anticheat_bypass) {
+                        playLayer::replay_p1.clear();
+                        playLayer::replay_p2.clear();
                         playLayer::checkpoints_p1.clear();
                         playLayer::checkpoints_p2.clear();
-                    }
-                    else if (currentMode == 1) { // Record
-                        if (practice_music_hack && anticheat_bypass) {
-                            playLayer::replay_p1.clear();
-                            playLayer::replay_p2.clear();
-                            playLayer::checkpoints_p1.clear();
-                            playLayer::checkpoints_p2.clear();
-                        } else {
-                            currentMode = 0;
-                        }
-                    }
-                    // No special logic needed for Playback
-                    playLayer::mode = currentMode;
-                }
-                
-                if (currentMode == 1 && (!practice_music_hack || !anticheat_bypass)) {
-                    if (ImGui::IsItemHovered()) {
-                        ImGui::SetTooltip("To record, please enable \"Practice Music Hack\" and \"Anticheat bypass\"");
+                    } else {
+                        currentMode = 0;
                     }
                 }
-
-                ImGui::Checkbox("Ignore Inputs on Playback", &playLayer::ignore_input);
-                
-                ImGui::Separator();    
-                
-                ImGui::Text("Frame:");
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255)); // Yellow
-                ImGui::Text("%i", playLayer::frame);
-                ImGui::PopStyleColor();             
-
-                ImGui::Separator();
-
-                ImGui::InputText("##replayinput", replay_name, IM_ARRAYSIZE(replay_name));
-                auto itemx = ImGui::GetItemRectMin().x;
-                auto itemy = ImGui::GetItemRectMax().y;
-                auto itemw = ImGui::GetItemRectSize().x;
-                ImGui::SameLine(0);
-                if (ImGui::ArrowButton("##comboopen", openned ? ImGuiDir_Up : ImGuiDir_Down)) {
-                    openned = !openned;
-                    if (openned) {
-                        replay_list.clear();
-                        for (const auto& entry : filesystem::directory_iterator(".aBot")) {
-                            replay_list.push_back(entry.path().filename().string());
-                        }
-                    }
+                // No special logic needed for Playback
+                playLayer::mode = currentMode;
+            }
+        
+            if (currentMode == 1 && (!practice_music_hack || !anticheat_bypass)) {
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("To record, please enable \"Practice Music Hack\" and \"Anticheat bypass\"");
                 }
+            }
+        
+            ImGui::Checkbox("Bruteforce", &playLayer::accuracy_fix);
+            if (playLayer::accuracy_fix) { 
+                ImGui::Checkbox("High FPS Rotation Fix", &playLayer::rotation_fix); 
+            }
+            ImGui::Checkbox("Ignore Inputs on Playback", &playLayer::ignore_input);
+        
+            ImGui::Separator();    
+        
+            ImGui::Text("Frame:");
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255)); // Yellow
+            ImGui::Text("%i", playLayer::frame);
+            ImGui::PopStyleColor();             
+        
+            ImGui::Separator();
+        
+            ImGui::PushItemWidth(buttonSize.x);
+            ImGui::InputText("##replayinput", replay_name, IM_ARRAYSIZE(replay_name));
+            auto itemx = ImGui::GetItemRectMin().x;
+            auto itemy = ImGui::GetItemRectMax().y;
+            auto itemw = ImGui::GetItemRectSize().x;
+            ImGui::SameLine(0);
+            if (ImGui::ArrowButton("##comboopen", openned ? ImGuiDir_Up : ImGuiDir_Down)) {
+                openned = !openned;
                 if (openned) {
-                    ImGui::SetNextWindowPos(ImVec2(itemx, itemy + 4));
-                    ImGui::SetNextWindowSize(ImVec2(itemw + ImGui::GetItemRectSize().x, NULL));
-                    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1);
-                    ImGui::Begin("##MacroList", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-                    for (int i = 0; i < (int)replay_list.size(); i++) {
-                        if (ImGui::MenuItem(replay_list[i].c_str())) {
-                            strcpy_s(replay_name, replay_list[i].c_str());
-                            openned = false;
-                        }
+                    replay_list.clear();
+                    for (const auto& entry : filesystem::directory_iterator(".aBot")) {
+                        replay_list.push_back(entry.path().filename().string());
                     }
-                    ImGui::End();
-                    ImGui::PopStyleVar();
                 }
-                
-                if (ImGui::Button("Save", {135.f, 24.f})) {
-                    std::string filename = (std::string)replay_name;
-                    if (!filename.ends_with(".replay"))
-                        filename += ".replay";
-                
-                    playLayer::saveReplay(".aBot/" + filename);
+            }
+            if (openned) {
+                ImGui::SetNextWindowPos(ImVec2(itemx, itemy + 4));
+                ImGui::SetNextWindowSize(ImVec2(itemw + ImGui::GetItemRectSize().x, NULL));
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1);
+                ImGui::Begin("##MacroList", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+                for (int i = 0; i < (int)replay_list.size(); i++) {
+                    if (ImGui::MenuItem(replay_list[i].c_str())) {
+                        strcpy_s(replay_name, replay_list[i].c_str());
+                        openned = false;
+                    }
                 }
-                
-                if (ImGui::Button("Load", {135.f, 24.f})) {
-                    std::string filename = (std::string)replay_name;
-                    if (!filename.ends_with(".replay"))
-                        filename += ".replay";
+                ImGui::End();
+                ImGui::PopStyleVar();
+            }
+        
+            if (ImGui::Button("Save", {buttonSize.x / 2, buttonSize.y})) {
+                std::string filename = (std::string)replay_name;
+                if (!filename.ends_with(".replay"))
+                    filename += ".replay";
+        
+                playLayer::saveReplay(".aBot/" + filename);
+            }
+        
+            ImGui::SameLine();
+        
+            if (ImGui::Button("Load", {buttonSize.x / 2 - 5, buttonSize.y})) {
+                std::string filename = (std::string)replay_name;
+                if (!filename.ends_with(".replay"))
+                    filename += ".replay";
                 
                     if (playLayer::replay_p1.empty()) {
                         playLayer::clearMacro();
@@ -414,12 +429,7 @@ void RenderMain() {
                     sortWindows2 = false;
                 }
                
-                ImGui::Checkbox("Practice Fix", &playLayer::practice_fix);
-                ImGui::Separator();
-                ImGui::Checkbox("Physics Change", &playLayer::accuracy_fix);
-                ImGui::Separator();
-                if (playLayer::accuracy_fix) { 
-                ImGui::Checkbox("Rotation Fix", &playLayer::rotation_fix); }
+                ImGui::Checkbox("Checkpoint Fix", &playLayer::practice_fix);
                 ImGui::Separator();
                 ImGui::Checkbox("FPS Bypass", &FPSMultiplier::fpsbypass_enabled);
                 ImGui::Separator();

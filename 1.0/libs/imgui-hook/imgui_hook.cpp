@@ -68,33 +68,29 @@ void ApplyColor() {
 
 void ApplyStyle() {
 	ImGuiStyle& style = ImGui::GetStyle();
-	style.WindowPadding = ImVec2(8.00f, 8.00f);
-	style.FramePadding = ImVec2(5.00f, 2.00f);
-	style.CellPadding = ImVec2(6.00f, 6.00f);
-	style.ItemSpacing = ImVec2(6.00f, 6.00f);
-	style.ItemInnerSpacing = ImVec2(6.00f, 6.00f);
-	style.TouchExtraPadding = ImVec2(0.00f, 0.00f);
-	style.IndentSpacing = 25.00f;
-	style.ScrollbarSize = 15.00f;
-	style.GrabMinSize = 10.00f;
-	style.WindowBorderSize = 1.00f;
-	style.ChildBorderSize = 1.00f;
-	style.PopupBorderSize = 1.00f;
-	style.FrameBorderSize = 1.00f;
-	style.TabBorderSize = 1.00f;
-    style.WindowRounding = 7.0f;
-	style.ChildRounding = 4.00f;
-	style.FrameRounding = 3.00f;
-	style.PopupRounding = 4.00f;
-	style.ScrollbarRounding = 9.00f;
-	style.GrabRounding = 3.00f;
-	style.LogSliderDeadzone = 4.00f;
-	style.TabRounding = 4.00f;
-	style.WindowMenuButtonPosition = 0;
-	style.ColorButtonPosition = 1;
-	style.ButtonTextAlign = ImVec2(0.50f, 0.50f);
-	style.SelectableTextAlign = ImVec2(0.00f, 0.00f);
-	style.DisplaySafeAreaPadding = ImVec2(3.00f, 3.00f);
+	style.WindowPadding                     = ImVec2(8.00f, 8.00f);
+	style.FramePadding                      = ImVec2(5.00f, 2.00f);
+	style.CellPadding                       = ImVec2(6.00f, 6.00f);
+	style.ItemSpacing                       = ImVec2(6.00f, 6.00f);
+	style.ItemInnerSpacing                  = ImVec2(6.00f, 6.00f);
+	style.TouchExtraPadding                 = ImVec2(0.00f, 0.00f);
+	style.IndentSpacing                     = 25;
+	style.ScrollbarSize                     = 15;
+	style.GrabMinSize                       = 10;
+	style.WindowBorderSize                  = 1;
+	style.ChildBorderSize                   = 0;
+	style.PopupBorderSize                   = 1;
+	style.FrameBorderSize                   = 1;
+	style.TabBorderSize                     = 0;
+	style.WindowRounding                    = 7;
+	style.ChildRounding                     = 4;
+	style.FrameRounding                     = 3;
+	style.PopupRounding                     = 4;
+	style.ScrollbarRounding                 = 9;
+	style.GrabRounding                      = 3;
+	style.LogSliderDeadzone                 = 4;
+	style.TabRounding                       = 4;
+	style.WindowTitleAlign                  = ImVec2(0.5f,0.5f);
 }
 
 #define _CAST(t,v)	reinterpret_cast<t>(v)

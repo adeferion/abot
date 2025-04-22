@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\oli\Documents\GitHub\aBot-Master\1.0\libs\minhook\src\buffer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\oli\Documents\GitHub\aBot-Master\1.0\libs\minhook\src\hook.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\oli\Documents\GitHub\aBot-Master\1.0\libs\minhook\src\trampoline.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\oli\Documents\GitHub\aBot-Master\1.0\libs\minhook\src\hde\hde32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\oli\Documents\GitHub\aBot-Master\1.0\libs\minhook\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{3373CF2B-56E2-3DA6-A3C7-AF3D4AF5450A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
