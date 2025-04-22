@@ -319,7 +319,7 @@ void RenderMain() {
 
                     ImGui::SetWindowSize(ImVec2(230,200));
                     if (sortWindows) {
-                        ImGui::SetWindowPos(ImVec2(900, 10));
+                        ImGui::SetWindowPos(ImVec2(1140, 10));
                         sortWindows = false;
                     }
 
@@ -449,21 +449,12 @@ void __fastcall dispatchKeyboardMSGHook(void* self, void*, int key, bool down) {
         FPSMultiplier::nextframe = false;
     }
 
-    if (pl && down && key == 'S') {
-        spambot::enable = !spambot::enable;
-    }
-
     if (down && key == 'P') {
         if (playLayer::mode != 2) playLayer::mode = 2;
         else playLayer::mode = 0;
     }
 
 }
-
-DWORD WINAPI Main(void* hModule) {
-    srand((uint32_t)time(NULL));
-    if (!std::filesystem::is_directory(".aBot") || !std::filesystem::exists(".aBot"))
-        std::filesystem::create_directory(".aBot");
 
     ImGuiHook::Load(RenderMain);
     MH_Initialize();
