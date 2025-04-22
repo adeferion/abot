@@ -49,6 +49,8 @@ static char username[64] = "";
 static char password[64] = "";
 static char loginError[128] = "";
 
+static float fps_input = FPSMultiplier::g_target_fps;
+
 // Disable Alt key
 void BlockAltKey() {
     if (GetAsyncKeyState(VK_MENU) & 0x8000) {
@@ -58,15 +60,15 @@ void BlockAltKey() {
 
 void RenderLogin() {
 
-    ImGui::Begin("aBot Login", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("aBot Login", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar);
     
-    ImGui::SetWindowSize(ImVec2(250,100));
+    ImGui::SetWindowSize(ImVec2(250,120));
     ImGui::SetWindowPos(ImVec2(800,10));
 
     ImGui::InputText("Username", username, IM_ARRAYSIZE(username));
     ImGui::InputText("Password", password, IM_ARRAYSIZE(password), ImGuiInputTextFlags_Password);
 
-    if (ImGui::Button("Login")) {
+    if (ImGui::Button("Login", buttonSize)) {
         std::string hwid = GetHWID();
         if (!CheckCredentialsOnline(username, password, hwid)) {
             strcpy_s(loginError, "Invalid Credentials");
@@ -224,6 +226,14 @@ void RenderMain() {
                         loading = true;
                     }
                 }
+
+                if (ImGui::Button("Clear", buttonSize)) {
+                    if (playLayer::replay_p1.empty()) playLayer::clearMacro();
+                    else  {
+                        overwrite = true;
+                        loading = false;
+                    }
+                }
                 
                 if (overwrite) {
                     ConfirmMessage(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y + 4);
@@ -235,20 +245,26 @@ void RenderMain() {
                     if (sortWindows || sortWindows2)
                         ImGui::SetWindowPos(ImVec2(250, 10));
                 
-                    ImGui::DragFloat("##FPS", &FPSMultiplier::g_target_fps, 1.f, 1.f, FLT_MAX, "FPS: %.2f");
-                    FPSMultiplier::g_enabled = true;
-                
-                    ImGui::Separator();
-                
-                    if (ImGui::DragFloat("##Speed", &playLayer::speedvalue, 0.01f, 0.f, FLT_MAX, "Speed: %.2f")) {
-                        // Optional: handle value change
-                    }
-                
-                    if (ImGui::Button("Set Speed")) {
-                        if (playLayer::speedvalue != 0) {
-                            CCDirector::sharedDirector()->getScheduler()->setTimeScale(playLayer::speedvalue); 
+                        if (ImGui::InputFloat("##FPS", &fps_input, 1.f, 100.f, "%.2f")) {
+                            
                         }
-                    }
+
+                        if (ImGui::Button("Set FPS", buttonSize)) {
+                            FPSMultiplier::g_target_fps = fps_input;
+                            FPSMultiplier::g_enabled = true;
+                        }
+                        
+                        ImGui::Separator();
+                        
+                        if (ImGui::InputFloat("##Speed", &playLayer::speedvalue, 0.01f, 0.f, "%.2f")) {
+                        
+                        }
+                        
+                        if (ImGui::Button("Set speed", buttonSize)) {
+                            if (playLayer::speedvalue != 0) {
+                                CCDirector::sharedDirector()->getScheduler()->setTimeScale(playLayer::speedvalue); 
+                            }
+                        }                        
                 
                     ImGui::End();               
 
@@ -301,7 +317,7 @@ void RenderMain() {
 
                     ImGui::Begin("Converter", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-                    ImGui::SetWindowSize(ImVec2(275,185));
+                    ImGui::SetWindowSize(ImVec2(275,133));
                     if (sortWindows)
                         ImGui::SetWindowPos(ImVec2(900, 10));
 
@@ -332,9 +348,9 @@ void RenderMain() {
 
                     ImGui::Begin("Mods", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-                    ImGui::SetWindowSize(ImVec2(230,200));
+                    ImGui::SetWindowSize(ImVec2(275,200));
                     if (sortWindows) {
-                        ImGui::SetWindowPos(ImVec2(1185, 10));
+                        ImGui::SetWindowPos(ImVec2(900, 160));
                         sortWindows = false;
                     }
 
@@ -422,7 +438,7 @@ void RenderMain() {
 
             ImGui::Begin("Settings", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse); {
 
-                ImGui::SetWindowSize(ImVec2(230,200));
+                ImGui::SetWindowSize(ImVec2(230,155));
                 if (sortWindows || sortWindows2)
                 {
                     ImGui::SetWindowPos(ImVec2(250, 205));
