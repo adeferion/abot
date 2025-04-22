@@ -44,36 +44,45 @@ bool openned = false;
 bool overwrite = false;
 bool loading = false;
 
-static bool showLogin = true;
-static char username[64] = "";
-static char password[64] = "";
-static char loginError[128] = "";
+bool isLoggedIn = false;  // To track if the user is logged in
+bool showLoginWindow = false;
+char username[128] = "";   // Username input
+char password[128] = "";   // Password input
+char loginError[256] = ""; // Error message if login fails
 
 static float fps_input = FPSMultiplier::g_target_fps;
 
-// Disable Alt key
-void BlockAltKey() {
-    if (GetAsyncKeyState(VK_MENU) & 0x8000) {
-        keybd_event(VK_MENU, 0x38, KEYEVENTF_KEYUP, 0);
-    }
-}
-
 void RenderLogin() {
+    ImVec2 windowSize = ImVec2(250, 120);
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImVec2 centerPos = ImVec2(
+        viewport->Pos.x + (viewport->Size.x - windowSize.x) * 0.5f,
+        viewport->Pos.y + (viewport->Size.y - windowSize.y) * 0.1f
+    );
 
-    ImGui::Begin("aBot Login", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar);
-    
-    ImGui::SetWindowSize(ImVec2(250,120));
-    ImGui::SetWindowPos(ImVec2(800,10));
+    // Set size, position, and focus
+    ImGui::SetNextWindowSize(windowSize);
+    ImGui::SetNextWindowPos(centerPos, ImGuiCond_Always);
+    ImGui::SetNextWindowFocus();
+
+    // Begin modal window
+    ImGui::Begin("aBot Login", nullptr,
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoScrollbar
+    );
 
     ImGui::InputText("Username", username, IM_ARRAYSIZE(username));
     ImGui::InputText("Password", password, IM_ARRAYSIZE(password), ImGuiInputTextFlags_Password);
 
-    if (ImGui::Button("Login", buttonSize)) {
+    if (ImGui::Button("Login")) {
         std::string hwid = GetHWID();
         if (!CheckCredentialsOnline(username, password, hwid)) {
             strcpy_s(loginError, "Invalid Credentials");
         } else {
-            showLogin = false;
+            isLoggedIn = true;  // Set the login status to true
+            showLoginWindow = false; // Hide login window after successful login
         }
     }
 
@@ -99,14 +108,18 @@ void ConfirmMessage(float x, float y) {
 }
 
 void RenderMain() {
-    BlockAltKey();
-
-    if (showLogin) {
-        RenderLogin();
-        return; // make sure nothing runs after this if we're still showing login
+    // Show login window if the Right Control key is pressed and user is not logged in
+    if (!isLoggedIn && (GetAsyncKeyState(VK_RCONTROL) & 0x8000)) {
+        showLoginWindow = true;  // Set flag to show the login window
     }
 
-    // Now we're logged in
+    // If not logged in and login window flag is set, show the login window
+    if (!isLoggedIn && showLoginWindow) {
+        RenderLogin();
+        return;  // Exit early, preventing the main window from rendering until login is complete
+    }
+
+    // Now we're logged in, proceed with rendering the main window
     CCDirector::sharedDirector()->getTouchDispatcher()->setDispatchEvents(!ImGui::GetIO().WantCaptureMouse);
 
     if (show) {
@@ -346,7 +359,7 @@ void RenderMain() {
                         ImGui::Text("Replay will be saved to 'aBot/converted.txt'");
                     }
 
-                    ImGui::Begin("Mods", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+                    ImGui::Begin("Hacks", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
                     ImGui::SetWindowSize(ImVec2(275,200));
                     if (sortWindows) {
@@ -457,11 +470,13 @@ void RenderMain() {
     }
 }
 
+#define VK_RCONTROL 0xA3 // or 163 in decimal
+
 inline void(__thiscall* dispatchKeyboardMSG)(void* self, int key, bool down);
 void __fastcall dispatchKeyboardMSGHook(void* self, void*, int key, bool down) {
     dispatchKeyboardMSG(self, key, down);
     auto pl = gd::GameManager::sharedState()->getPlayLayer();
-    if (down && key == 18) {
+    if (down && (GetAsyncKeyState(VK_RCONTROL) & 0x8000)) {
         show = !show;
     }
 
