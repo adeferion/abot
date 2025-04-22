@@ -286,7 +286,7 @@ void RenderMain() {
 
                     ImGui::Begin("Converter", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-                    ImGui::SetWindowSize(ImVec2(230,185));
+                    ImGui::SetWindowSize(ImVec2(275,185));
                     if (sortWindows)
                         ImGui::SetWindowPos(ImVec2(900, 10));
 
@@ -312,14 +312,14 @@ void RenderMain() {
                     }
                     
                     if (converterType == 0) {
-                        ImGui::Text("Replay will be saved to \".aBot/converted.txt\"");
+                        ImGui::Text("Replay will be saved to 'aBot/converted.txt'");
                     }
 
                     ImGui::Begin("Mods", &show, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
                     ImGui::SetWindowSize(ImVec2(230,200));
                     if (sortWindows) {
-                        ImGui::SetWindowPos(ImVec2(1140, 10));
+                        ImGui::SetWindowPos(ImVec2(1185, 10));
                         sortWindows = false;
                     }
 
@@ -455,6 +455,11 @@ void __fastcall dispatchKeyboardMSGHook(void* self, void*, int key, bool down) {
     }
 
 }
+
+DWORD WINAPI Main(void* hModule) {
+    srand((uint32_t)time(NULL));
+    if (!std::filesystem::is_directory(".aBot") || !std::filesystem::exists(".aBot"))
+        std::filesystem::create_directory(".aBot");
 
     ImGuiHook::Load(RenderMain);
     MH_Initialize();
