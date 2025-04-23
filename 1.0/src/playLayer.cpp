@@ -39,7 +39,7 @@ namespace playLayer {
 		if (replay_p1.empty()) return false;
 		fstream file(s, std::ios::out);
         if (file.is_open()) {
-            file << "aBot Version: 0.2.0 //frame, pos_x, pos_y, rotation, y_vel, isDown" << "\n";
+            file << "aBot Version: 1.1.0 //frame, pos_x, pos_y, rotation, y_vel, isDown" << "\n";
 			file << "Framerate: " << FPSMultiplier::g_target_fps << "\n";
 			file << "1P Replay Size: " << replay_p1.size() << "\n";
 			for (int i = 0; i < (int)replay_p1.size(); i++) {
@@ -69,7 +69,7 @@ namespace playLayer {
 	
 		getline(file, line);
 		// Skip warning popup for old version, just continue
-		if (line.substr(0, 24) != "aBot Version: 0.1.0") {
+		if (line.substr(0, 24) != "aBot Version: 0.2.0") {
 			// Optionally log or flag this somewhere if needed
 		}
 	

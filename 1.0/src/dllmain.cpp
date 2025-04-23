@@ -49,11 +49,11 @@ bool openned = false;
 bool overwrite = false;
 bool loading = false;
 
-bool isLoggedIn = false;  // To track if the user is logged in
+bool isLoggedIn = false;
 bool showLoginWindow = true;
-char username[128] = "";   // Username input
-char password[128] = "";   // Password input
-char loginError[256] = ""; // Error message if login fails
+char username[128] = "";
+char password[128] = "";
+char loginError[256] = "";
 
 static float fps_input = FPSMultiplier::g_target_fps;
 
@@ -65,12 +65,10 @@ void RenderLogin() {
         viewport->Pos.y + (viewport->Size.y - windowSize.y) * 0.1f
     );
 
-    // Set size, position, and focus
     ImGui::SetNextWindowSize(windowSize);
     ImGui::SetNextWindowPos(centerPos, ImGuiCond_Always);
     ImGui::SetNextWindowFocus();
 
-    // Begin modal window
     ImGui::Begin("aBot Login", nullptr,
         ImGuiWindowFlags_NoResize |
         ImGuiWindowFlags_NoMove |
@@ -84,7 +82,7 @@ void RenderLogin() {
     if (ImGui::Button("Login", buttonSize)) {
         std::string hwid = GetHWID();
         if (!CheckCredentialsOnline(username, password, hwid)) {
-            strcpy_s(loginError, "Invalid Credentials");
+            strcpy_s(loginError, "Invalid HWID or Credentials!");
         } else {
             isLoggedIn = true;
             showLoginWindow = false;
@@ -123,7 +121,6 @@ void RenderMain() {
         }
     }
 
-    // Now we're logged in, proceed with rendering the main window
     CCDirector::sharedDirector()->getTouchDispatcher()->setDispatchEvents(!ImGui::GetIO().WantCaptureMouse);
 
     if (show) {
@@ -136,12 +133,10 @@ void RenderMain() {
             inited = true;
         }
         
-        // Get the window width and calculate the offset to center elements
         float window_width = ImGui::GetWindowWidth();
         float content_width = ImGui::GetContentRegionAvail().x;
-        float offset = (window_width - content_width) * 0.5f; // This will center the content
+        float offset = (window_width - content_width) * 0.5f;
         
-        // Start from the center and then adjust the positioning for each element
         ImGui::SetCursorPosX(offset);
         
         if (ImGui::BeginChild("##RigthSide", ImVec2(content_width, ImGui::GetContentRegionAvail().y), true))
@@ -149,11 +144,11 @@ void RenderMain() {
             int currentMode = playLayer::mode;
             const char* modes[] = { "Disabled", "Record", "Playback" };
             if (ImGui::Combo("Mode", &currentMode, modes, IM_ARRAYSIZE(modes))) {
-                if (currentMode == 0) { // Disabled
+                if (currentMode == 0) {
                     playLayer::checkpoints_p1.clear();
                     playLayer::checkpoints_p2.clear();
                 }
-                else if (currentMode == 1) { // Record
+                else if (currentMode == 1) {
                     if (practice_music_hack && anticheat_bypass) {
                         playLayer::replay_p1.clear();
                         playLayer::replay_p2.clear();
@@ -163,7 +158,6 @@ void RenderMain() {
                         currentMode = 0;
                     }
                 }
-                // No special logic needed for Playback
                 playLayer::mode = currentMode;
             }
         
