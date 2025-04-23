@@ -1,5 +1,8 @@
 #include <windows.h>
 #include <shellapi.h>
+#include <fstream>
+#include <format>
+#include <cmath>
 #include <cocos2d.h>
 #include <gd.h>
 #include <string.h>
@@ -11,6 +14,8 @@
 #include <imgui_internal.h>
 #include <imgui.h>
 #include "hwid.h"
+
+#define VK_RCONTROL 0xA3 // or 163 in decimal
 
     using namespace cocos2d;
 
@@ -45,7 +50,7 @@ bool overwrite = false;
 bool loading = false;
 
 bool isLoggedIn = false;  // To track if the user is logged in
-bool showLoginWindow = false;
+bool showLoginWindow = true;
 char username[128] = "";   // Username input
 char password[128] = "";   // Password input
 char loginError[256] = ""; // Error message if login fails
@@ -75,19 +80,19 @@ void RenderLogin() {
 
     ImGui::InputText("Username", username, IM_ARRAYSIZE(username));
     ImGui::InputText("Password", password, IM_ARRAYSIZE(password), ImGuiInputTextFlags_Password);
-
-    if (ImGui::Button("Login")) {
+    
+    if (ImGui::Button("Login", buttonSize)) {
         std::string hwid = GetHWID();
         if (!CheckCredentialsOnline(username, password, hwid)) {
             strcpy_s(loginError, "Invalid Credentials");
         } else {
-            isLoggedIn = true;  // Set the login status to true
-            showLoginWindow = false; // Hide login window after successful login
+            isLoggedIn = true;
+            showLoginWindow = false;
         }
     }
 
     if (strlen(loginError) > 0) {
-        ImGui::TextColored(ImVec4(1, 0, 0, 1), loginError);
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), loginError);
     }
 
     ImGui::End();
@@ -108,15 +113,14 @@ void ConfirmMessage(float x, float y) {
 }
 
 void RenderMain() {
-    // Show login window if the Right Control key is pressed and user is not logged in
-    if (!isLoggedIn && (GetAsyncKeyState(VK_RCONTROL) & 0x8000)) {
-        showLoginWindow = true;  // Set flag to show the login window
-    }
+    if (!isLoggedIn) {
+        if (GetAsyncKeyState(VK_RCONTROL) & 0x8000)
+            showLoginWindow = true;
 
-    // If not logged in and login window flag is set, show the login window
-    if (!isLoggedIn && showLoginWindow) {
-        RenderLogin();
-        return;  // Exit early, preventing the main window from rendering until login is complete
+        if (showLoginWindow) {
+            RenderLogin();
+            return;
+        }
     }
 
     // Now we're logged in, proceed with rendering the main window
@@ -469,8 +473,6 @@ void RenderMain() {
         ImGui::End();
     }
 }
-
-#define VK_RCONTROL 0xA3 // or 163 in decimal
 
 inline void(__thiscall* dispatchKeyboardMSG)(void* self, int key, bool down);
 void __fastcall dispatchKeyboardMSGHook(void* self, void*, int key, bool down) {
