@@ -1,0 +1,6 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-4.0/Modules/BasicConfigVersion-AnyNewerVersion.cmake.in
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakePackageConfigHelpers.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/WriteBasicConfigVersionFile.cmake
+C:/Users/oli/Documents/GitHub/aBot-Master/1.0/libs/minhook/CMakeLists.txt
+C:/Users/oli/Documents/GitHub/aBot-Master/1.0/libs/minhook/cmake/minhook-config.cmake.in
