@@ -8,8 +8,8 @@
 
 std::string GetHWID() {
     HKEY hKey;
-    const char* regPath = R"(Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography)";
-    const char* valueName = "MachineGuid";
+    const char* regPath = R"(Computer\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\IDConfigDB\Hardware Profiles\0001)";
+    const char* valueName = "HwProfileGuid";
     char value[255];
     DWORD value_length = sizeof(value);
     DWORD type = 0;
