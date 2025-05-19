@@ -1,25 +1,28 @@
-// hwid.cpp
 #include "hwid.h"
 #include <windows.h>
 #include <wininet.h>
 #include <sstream>
+#include <iostream> // Optional: for debugging output
 
 #pragma comment(lib, "wininet.lib")
 
 std::string GetHWID() {
     HKEY hKey;
-    const char* regPath = R"(Computer\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\IDConfigDB\Hardware Profiles\0001)";
+    const char* regPath = R"(SYSTEM\CurrentControlSet\Control\IDConfigDB\Hardware Profiles\0001)";
     const char* valueName = "HwProfileGuid";
     char value[255];
     DWORD value_length = sizeof(value);
     DWORD type = 0;
 
     if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, regPath, 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-        if (RegQueryValueExA(hKey, valueName, nullptr, &type, (LPBYTE)&value, &value_length) == ERROR_SUCCESS && type == REG_SZ) {
+        if (RegQueryValueExA(hKey, valueName, nullptr, &type, reinterpret_cast<LPBYTE>(value), &value_length) == ERROR_SUCCESS) {
             RegCloseKey(hKey);
-            return std::string(value);
+            if (type == REG_SZ) {
+                return std::string(value);
+            }
+        } else {
+            RegCloseKey(hKey);
         }
-        RegCloseKey(hKey);
     }
     return "";
 }
@@ -34,12 +37,12 @@ bool CheckCredentialsOnline(const std::string& user, const std::string& pass, co
         return false;
     }
 
-    char buffer[4096];
+    char buffer[4097]; // One extra byte for null terminator
     DWORD bytesRead;
     std::string fileContent;
 
     while (InternetReadFile(hFile, buffer, sizeof(buffer) - 1, &bytesRead) && bytesRead != 0) {
-        buffer[bytesRead] = '\0';
+        buffer[bytesRead] = '\0'; // Null terminate
         fileContent += buffer;
     }
 
@@ -51,8 +54,9 @@ bool CheckCredentialsOnline(const std::string& user, const std::string& pass, co
     std::string target = user + " / " + pass + " / " + hwid;
 
     while (std::getline(stream, line)) {
-        if (line == target)
+        if (line == target) {
             return true;
+        }
     }
 
     return false;

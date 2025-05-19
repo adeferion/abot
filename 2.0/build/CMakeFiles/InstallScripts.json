@@ -1,0 +1,10 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/oli/Documents/GitHub/aBot-Master/2.0/build/cmake_install.cmake",
+		"C:/Users/oli/Documents/GitHub/aBot-Master/2.0/build/libs/minhook/cmake_install.cmake",
+		"C:/Users/oli/Documents/GitHub/aBot-Master/2.0/build/libs/imgui-hook/cmake_install.cmake",
+		"C:/Users/oli/Documents/GitHub/aBot-Master/2.0/build/libs/cocos-headers/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

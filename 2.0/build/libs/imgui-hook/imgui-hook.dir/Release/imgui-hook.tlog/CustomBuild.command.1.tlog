@@ -1,0 +1,10 @@
+^C:\USERS\OLI\DOCUMENTS\GITHUB\ABOT-MASTER\2.0\LIBS\IMGUI-HOOK\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/oli/Documents/GitHub/aBot-Master/2.0 -BC:/Users/oli/Documents/GitHub/aBot-Master/2.0/build --check-stamp-file C:/Users/oli/Documents/GitHub/aBot-Master/2.0/build/libs/imgui-hook/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

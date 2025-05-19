@@ -458,9 +458,6 @@ void ConfirmMessage(float x, float y) {
 
 void RenderMain() {
     if (!isLoggedIn) {
-        if (GetAsyncKeyState(VK_INSERT) & 1)
-            showLoginWindow = true;
-
         if (showLoginWindow) {
             RenderLogin();
             return;
