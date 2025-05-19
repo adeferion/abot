@@ -2,7 +2,6 @@
 #include "replayEngine.h"
 #include <imgui-hook.hpp>
 #include <imgui.h>
-#include "hacks.h"
 #include "recorder.hpp"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

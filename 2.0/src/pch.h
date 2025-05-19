@@ -6,13 +6,9 @@
 #include <cocos2d.h>
 #include <MinHook.h>
 #include <gd.h>
-
-#include <json.hpp>
 #include "console.h"
 
 using namespace cocos2d;
 using namespace std;
-
-using json = nlohmann::json;
 
 #endif

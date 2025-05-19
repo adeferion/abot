@@ -7,7 +7,6 @@
 #include <chrono>
 #include "replayEngine.h"
 #include "hooks.h"
-#include "hacks.h"
 #include "recorder.hpp"
 
 bool meta = false;
@@ -225,7 +224,6 @@ void gui::Render()
             ImGui::SetNextWindowSize(ImVec2(450, 350));
             ImVec2 center = ImGui::GetMainViewport()->GetCenter();
             ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-            hacks::load();
         }
 
         CustomColor();

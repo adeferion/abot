@@ -13,9 +13,6 @@
     <ClCompile Include="C:\Users\oli\Documents\GitHub\aBot-Master\2.0\src\gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\oli\Documents\GitHub\aBot-Master\2.0\src\hacks.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="C:\Users\oli\Documents\GitHub\aBot-Master\2.0\src\hooks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
