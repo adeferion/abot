@@ -4,6 +4,9 @@
 #include <imgui_internal.h>
 #include <imgui-hook.hpp>
 #include <shellapi.h>
+#include <windows.h>
+#include <string>
+#include <fstream>
 #include <chrono>
 #include "replayEngine.h"
 #include "hooks.h"
@@ -12,7 +15,7 @@
 
 bool meta = false;
 int items_index = 0;
-const char* items[] = {"General", "Assist", "Video", "Settings", "About"};
+const char* items[] = {"General", "Assist", "Video", "Settings", "Data", "About"};
 bool down = false;
 bool alwaysTrue = true;
 
@@ -21,9 +24,10 @@ bool gui::inited = false;
 
 bool isLoggedIn = false;
 bool showLoginWindow = true;
-char username[128] = "";
-char password[128] = "";
-char loginError[256] = "";
+char username[128] = {};
+char password[128] = {};
+char loginError[256] = {};
+char userStatus[64] = "Unknown";
 
 void CustomStyle() {
     ImGuiStyle& style = ImGui::GetStyle();
@@ -121,7 +125,70 @@ void CustomStyle() {
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 }
 
+void Logout() {
+    isLoggedIn = false;
+    showLoginWindow = true;
+    memset(username, 0, sizeof(username));
+    memset(password, 0, sizeof(password));
+    memset(loginError, 0, sizeof(loginError));
+    std::remove("logindata.txt"); // Delete the saved file
+}
+
+void SaveLoginData(const char* username, const char* password) {
+    std::ofstream file("logindata.txt");
+    if (file.is_open()) {
+        file << username << "\n" << password;
+        file.close();
+    }
+}
+
+bool LoadLoginData(char* outUsername, char* outPassword) {
+    std::ifstream file("logindata.txt");
+    if (file.is_open()) {
+        std::string u, p;
+        std::getline(file, u);
+        std::getline(file, p);
+        file.close();
+
+        // Safely copy strings and null terminate
+        strncpy(outUsername, u.c_str(), sizeof(username) - 1);
+        outUsername[sizeof(username) - 1] = '\0';
+
+        strncpy(outPassword, p.c_str(), sizeof(password) - 1);
+        outPassword[sizeof(password) - 1] = '\0';
+
+        return true;
+    }
+    return false;
+}
+
+// To avoid checking every frame, add a flag
+static bool triedAutoLogin = false;
+
 void RenderLogin() {
+    if (!isLoggedIn && !triedAutoLogin && LoadLoginData(username, password)) {
+        triedAutoLogin = true;
+        std::string hwid = GetHWID();
+
+        std::string status = GetUserStatusOnline(username, password, hwid);
+
+        // Debug print/log
+        std::cout << "Auto-login status: \"" << status << "\"\n";
+
+        // Change this according to your actual success string
+        bool valid = (status == "OK");  // <-- adjust here!
+
+        if (valid) {
+            isLoggedIn = true;
+            showLoginWindow = false;
+            memset(loginError, 0, sizeof(loginError));
+        } else {
+            strcpy_s(loginError, sizeof(loginError), "Saved login is invalid!");
+            memset(username, 0, sizeof(username));
+            memset(password, 0, sizeof(password));
+        }
+    }
+
     ImVec2 windowSize = ImVec2(250, 120);
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImVec2 centerPos = ImVec2(
@@ -145,19 +212,25 @@ void RenderLogin() {
 
     ImGui::InputText("Username", username, IM_ARRAYSIZE(username));
     ImGui::InputText("Password", password, IM_ARRAYSIZE(password), ImGuiInputTextFlags_Password);
-    
+
     if (ImGui::Button("Login")) {
         std::string hwid = GetHWID();
-        if (!CheckCredentialsOnline(username, password, hwid)) {
-            strcpy_s(loginError, "Invalid HWID or Credentials!");
+        std::string status = GetUserStatusOnline(username, password, hwid);
+
+        bool valid = (status == "OK");  // Adjust as needed
+
+        if (!valid) {
+            strcpy_s(loginError, sizeof(loginError), "Invalid HWID or Credentials!");
         } else {
+            SaveLoginData(username, password);
             isLoggedIn = true;
             showLoginWindow = false;
+            memset(loginError, 0, sizeof(loginError));
         }
     }
 
     if (strlen(loginError) > 0) {
-        ImGui::TextColored(ImVec4(1, 1, 0, 1), loginError);
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), "%s", loginError);
     }
 
     ImGui::End();
@@ -568,6 +641,16 @@ void gui::Render()
                         ImGui::Separator();
                     }
                     else if (items_index == 4)
+                    {
+                        std::string hwid = GetHWID();
+                        ImGui::Text("HWID: %s", hwid.c_str());
+                        ImGui::Text("Logged in as: %s", username);
+                        ImGui::Text("Status: %s", userStatus);
+                        if (ImGui::Button("Logout")) {
+                            Logout();
+                        }
+                    }
+                    else if (items_index == 5)
                     {
                         ImGui::Text("About");
                         ImGui::Separator();

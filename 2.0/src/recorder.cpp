@@ -6,8 +6,8 @@
 Recorder recorder;
 
 Recorder::Recorder() : 
-    m_width(1280), 
-    m_height(720), 
+    m_width(3840), 
+    m_height(2160), 
     m_fps(60) {}
 
 void Recorder::start(const std::string& path) {
@@ -62,7 +62,7 @@ void Recorder::start(const std::string& path) {
         if (!m_include_audio || !std::filesystem::exists(song_file))
             return;
 
-        std::string tempDir = std::filesystem::path("ReplayEngine/Temp").string();
+        std::string tempDir = std::filesystem::path("aBot/Temp").string();
         std::filesystem::create_directory(tempDir);
         std::string tempPath = tempDir + "/output.mp4";
         std::string finalPath = path;
