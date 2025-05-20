@@ -24,10 +24,9 @@ bool gui::inited = false;
 
 bool isLoggedIn = false;
 bool showLoginWindow = true;
-char username[128] = {};
-char password[128] = {};
-char loginError[256] = {};
-char userStatus[64] = "Unknown";
+char username[128] = "";
+char password[128] = "";
+char loginError[256] = "";
 
 void CustomStyle() {
     ImGuiStyle& style = ImGui::GetStyle();
@@ -166,29 +165,6 @@ bool LoadLoginData(char* outUsername, char* outPassword) {
 static bool triedAutoLogin = false;
 
 void RenderLogin() {
-    if (!isLoggedIn && !triedAutoLogin && LoadLoginData(username, password)) {
-        triedAutoLogin = true;
-        std::string hwid = GetHWID();
-
-        std::string status = GetUserStatusOnline(username, password, hwid);
-
-        // Debug print/log
-        std::cout << "Auto-login status: \"" << status << "\"\n";
-
-        // Change this according to your actual success string
-        bool valid = (status == "OK");  // <-- adjust here!
-
-        if (valid) {
-            isLoggedIn = true;
-            showLoginWindow = false;
-            memset(loginError, 0, sizeof(loginError));
-        } else {
-            strcpy_s(loginError, sizeof(loginError), "Saved login is invalid!");
-            memset(username, 0, sizeof(username));
-            memset(password, 0, sizeof(password));
-        }
-    }
-
     ImVec2 windowSize = ImVec2(250, 120);
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImVec2 centerPos = ImVec2(
@@ -212,25 +188,19 @@ void RenderLogin() {
 
     ImGui::InputText("Username", username, IM_ARRAYSIZE(username));
     ImGui::InputText("Password", password, IM_ARRAYSIZE(password), ImGuiInputTextFlags_Password);
-
+    
     if (ImGui::Button("Login")) {
         std::string hwid = GetHWID();
-        std::string status = GetUserStatusOnline(username, password, hwid);
-
-        bool valid = (status == "OK");  // Adjust as needed
-
-        if (!valid) {
-            strcpy_s(loginError, sizeof(loginError), "Invalid HWID or Credentials!");
+        if (!CheckCredentialsOnline(username, password, hwid)) {
+            strcpy_s(loginError, "Invalid HWID or Credentials!");
         } else {
-            SaveLoginData(username, password);
             isLoggedIn = true;
             showLoginWindow = false;
-            memset(loginError, 0, sizeof(loginError));
         }
     }
 
     if (strlen(loginError) > 0) {
-        ImGui::TextColored(ImVec4(1, 1, 0, 1), "%s", loginError);
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), loginError);
     }
 
     ImGui::End();
