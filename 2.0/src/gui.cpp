@@ -8,6 +8,7 @@
 #include "replayEngine.h"
 #include "hooks.h"
 #include "recorder.hpp"
+#include "hwid.h"
 
 bool meta = false;
 int items_index = 0;
@@ -17,6 +18,12 @@ bool alwaysTrue = true;
 
 bool gui::show = false;
 bool gui::inited = false;
+
+bool isLoggedIn = false;
+bool showLoginWindow = true;
+char username[128] = "";
+char password[128] = "";
+char loginError[256] = "";
 
 void CustomStyle() {
     ImGuiStyle& style = ImGui::GetStyle();
@@ -112,6 +119,48 @@ void CustomStyle() {
 		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+}
+
+void RenderLogin() {
+    ImVec2 windowSize = ImVec2(250, 120);
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImVec2 centerPos = ImVec2(
+        viewport->Pos.x + (viewport->Size.x - windowSize.x) * 0.5f,
+        viewport->Pos.y + (viewport->Size.y - windowSize.y) * 0.1f
+    );
+
+    CustomColor();
+    CustomStyle();
+
+    ImGui::SetNextWindowSize(windowSize);
+    ImGui::SetNextWindowPos(centerPos, ImGuiCond_Always);
+    ImGui::SetNextWindowFocus();
+
+    ImGui::Begin("aBot Login", nullptr,
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoScrollbar
+    );
+
+    ImGui::InputText("Username", username, IM_ARRAYSIZE(username));
+    ImGui::InputText("Password", password, IM_ARRAYSIZE(password), ImGuiInputTextFlags_Password);
+    
+    if (ImGui::Button("Login")) {
+        std::string hwid = GetHWID();
+        if (!CheckCredentialsOnline(username, password, hwid)) {
+            strcpy_s(loginError, "Invalid HWID or Credentials!");
+        } else {
+            isLoggedIn = true;
+            showLoginWindow = false;
+        }
+    }
+
+    if (strlen(loginError) > 0) {
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), loginError);
+    }
+
+    ImGui::End();
 }
 
 void MetaRender()
@@ -218,6 +267,13 @@ void gui::Render()
 
     if (gui::show)
     {
+        if (!isLoggedIn) {
+            if (showLoginWindow) {
+                RenderLogin();
+                return;
+            }
+        }
+
         if (!gui::inited)
         {
             gui::inited = true;
