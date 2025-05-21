@@ -1,4 +1,5 @@
 #include "imgui-hook.hpp"
+#include "imgui_theme.hpp"
 #include <functional>
 #include <chrono>
 
@@ -55,6 +56,9 @@ void __fastcall CCEGLView_swapBuffers_H(CCEGLView* self)
         io.Fonts->Clear();
 
         io.IniFilename = nullptr;
+
+        CustomColor();
+        CustomStyle();
 
         hWnd = WindowFromDC(*reinterpret_cast<HDC*>(reinterpret_cast<uintptr_t>(self->getWindow()) + 0x244));
         originalWndProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);

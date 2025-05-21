@@ -115,7 +115,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=aBot_VERSION_2.0
+CMAKE_PROJECT_NAME:STATIC=aBot_VERSION_2.0_unpacked
 
 //RC compiler
 CMAKE_RC_COMPILER:FILEPATH=rc
@@ -196,6 +196,15 @@ aBot_VERSION_2.0_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 aBot_VERSION_2.0_SOURCE_DIR:STATIC=C:/Users/oli/Documents/GitHub/aBot-Master/2.0
+
+//Value Computed by CMake
+aBot_VERSION_2.0_unpacked_BINARY_DIR:STATIC=C:/Users/oli/Documents/GitHub/aBot-Master/2.0/build
+
+//Value Computed by CMake
+aBot_VERSION_2.0_unpacked_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+aBot_VERSION_2.0_unpacked_SOURCE_DIR:STATIC=C:/Users/oli/Documents/GitHub/aBot-Master/2.0
 
 //Value Computed by CMake
 cocos-headers_BINARY_DIR:STATIC=C:/Users/oli/Documents/GitHub/aBot-Master/2.0/build/libs/cocos-headers

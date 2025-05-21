@@ -1,6 +1,6 @@
 ^C:\USERS\OLI\DOCUMENTS\GITHUB\ABOT-MASTER\2.0\BUILD\CMAKEFILES\EE01C646C85C7F99A0E59B3010F29660\GENERATE.STAMP.RULE
 setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/oli/Documents/GitHub/aBot-Master/2.0 -BC:/Users/oli/Documents/GitHub/aBot-Master/2.0/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/oli/Documents/GitHub/aBot-Master/2.0/build/aBot_VERSION_2.0.sln
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/oli/Documents/GitHub/aBot-Master/2.0 -BC:/Users/oli/Documents/GitHub/aBot-Master/2.0/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/oli/Documents/GitHub/aBot-Master/2.0/build/aBot_VERSION_2.0_unpacked.sln
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone

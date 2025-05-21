@@ -178,9 +178,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\oli\Documents\GitHub\aBot-Master\2.0\build\aBot_VERSION_2.0.vcxproj">
-      <Project>{C6083D46-C273-3975-81B0-C3C3EEF1D800}</Project>
-      <Name>aBot_VERSION_2.0</Name>
+    <ProjectReference Include="C:\Users\oli\Documents\GitHub\aBot-Master\2.0\build\aBot_VERSION_2.0_unpacked.vcxproj">
+      <Project>{8922FB7B-A07B-3912-812E-68A09661B6EE}</Project>
+      <Name>aBot_VERSION_2.0_unpacked</Name>
     </ProjectReference>
     <ProjectReference Include="C:\Users\oli\Documents\GitHub\aBot-Master\2.0\build\libs\imgui-hook\imgui-hook.vcxproj">
       <Project>{CACC2877-54E1-3DEA-A59D-DB1DE07B0F25}</Project>
