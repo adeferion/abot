@@ -12,6 +12,12 @@
 #include "hooks.h"
 #include "recorder.hpp"
 #include "hwid.h"
+#include "globals.h"
+
+// Globals: std::string version only (remove char arrays)
+std::string username = "";
+std::string password = "";
+std::string userStatus = "Unknown";
 
 bool meta = false;
 int items_index = 0;
@@ -24,9 +30,9 @@ bool gui::inited = false;
 
 bool isLoggedIn = false;
 bool showLoginWindow = true;
-char username[128] = "";
-char password[128] = "";
 char loginError[256] = "";
+
+extern std::string userStatus;
 
 void CustomStyle() {
     ImGuiStyle& style = ImGui::GetStyle();
@@ -127,44 +133,34 @@ void CustomStyle() {
 void Logout() {
     isLoggedIn = false;
     showLoginWindow = true;
-    memset(username, 0, sizeof(username));
-    memset(password, 0, sizeof(password));
+    username.clear();
+    password.clear();
     memset(loginError, 0, sizeof(loginError));
     std::remove("logindata.txt"); // Delete the saved file
 }
 
-void SaveLoginData(const char* username, const char* password) {
+void SaveLoginData(const std::string& u, const std::string& p) {
     std::ofstream file("logindata.txt");
     if (file.is_open()) {
-        file << username << "\n" << password;
+        file << u << "\n" << p << "\n";
         file.close();
     }
 }
 
-bool LoadLoginData(char* outUsername, char* outPassword) {
+bool LoadLoginData(std::string& outUsername, std::string& outPassword) {
     std::ifstream file("logindata.txt");
     if (file.is_open()) {
-        std::string u, p;
-        std::getline(file, u);
-        std::getline(file, p);
+        std::getline(file, outUsername);
+        std::getline(file, outPassword);
         file.close();
-
-        // Safely copy strings and null terminate
-        strncpy(outUsername, u.c_str(), sizeof(username) - 1);
-        outUsername[sizeof(username) - 1] = '\0';
-
-        strncpy(outPassword, p.c_str(), sizeof(password) - 1);
-        outPassword[sizeof(password) - 1] = '\0';
-
         return true;
     }
     return false;
 }
 
-// To avoid checking every frame, add a flag
-static bool triedAutoLogin = false;
-
 void RenderLogin() {
+    static bool triedAutoLogin = false;
+
     ImVec2 windowSize = ImVec2(250, 120);
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImVec2 centerPos = ImVec2(
@@ -186,16 +182,43 @@ void RenderLogin() {
         ImGuiWindowFlags_NoScrollbar
     );
 
-    ImGui::InputText("Username", username, IM_ARRAYSIZE(username));
-    ImGui::InputText("Password", password, IM_ARRAYSIZE(password), ImGuiInputTextFlags_Password);
+    // On first call, try loading saved login data once
+    static char usernameBuf[128] = {};
+    static char passwordBuf[128] = {};
+    static bool initialized = false;
+
+    if (!triedAutoLogin) {
+        triedAutoLogin = true;
+        if (LoadLoginData(username, password)) {
+            // Optionally attempt auto-login here or just fill inputs
+        }
+    }
+
+    // Initialize buffers only once
+    if (!initialized) {
+        strncpy(usernameBuf, username.c_str(), sizeof(usernameBuf) - 1);
+        strncpy(passwordBuf, password.c_str(), sizeof(passwordBuf) - 1);
+        initialized = true;
+    }
+
+    // Input fields
+    ImGui::InputText("Username", usernameBuf, IM_ARRAYSIZE(usernameBuf));
+    ImGui::InputText("Password", passwordBuf, IM_ARRAYSIZE(passwordBuf), ImGuiInputTextFlags_Password);
     
     if (ImGui::Button("Login")) {
+        // Update std::string with buffer content
+        username = std::string(usernameBuf);
+        password = std::string(passwordBuf);
+
         std::string hwid = GetHWID();
         if (!CheckCredentialsOnline(username, password, hwid)) {
             strcpy_s(loginError, "Invalid HWID or Credentials!");
         } else {
             isLoggedIn = true;
             showLoginWindow = false;
+            strcpy_s(loginError, "");  // Clear error
+
+            SaveLoginData(username, password);  // Save successful login
         }
     }
 
@@ -220,13 +243,13 @@ void MetaRender()
             auto dual = pl->m_isDualMode;
             if (!dual)
             {
-                ImGui::Text("aBot 2.0b1\nFrame: %i\nPosition X: %f\nPosition Y: %f\nRotation %f\nY Accel: %f",
+                ImGui::Text("aBot 2.0b6\nFrame: %i\nPosition X: %f\nPosition Y: %f\nRotation %f\nY Accel: %f",
                             replay.get_frame(), pl->m_player1->m_position.x, pl->m_player1->m_position.y, pl->m_player1->getRotation(),
                             pl->m_player1->m_yAccel);
             }
             else
             {
-                ImGui::Text("aBot 2.0b1\nFrame: %i\nPosition X: %f, %f\nPosition Y: %f, %f\nRotation %f, %f\nY Accel: %f, %f",
+                ImGui::Text("aBot 2.0b6\nFrame: %i\nPosition X: %f, %f\nPosition Y: %f, %f\nRotation %f, %f\nY Accel: %f, %f",
                             replay.get_frame(), pl->m_player1->m_position.x, pl->m_player2->m_position.x,
                             pl->m_player1->m_position.y, pl->m_player2->m_position.y, pl->m_player1->getRotation(), pl->m_player2->getRotation(),
                             pl->m_player1->m_yAccel, pl->m_player2->m_yAccel);
@@ -614,8 +637,8 @@ void gui::Render()
                     {
                         std::string hwid = GetHWID();
                         ImGui::Text("HWID: %s", hwid.c_str());
-                        ImGui::Text("Logged in as: %s", username);
-                        ImGui::Text("Status: %s", userStatus);
+                        ImGui::Text("Logged in as: %s", username.c_str());
+                        ImGui::Text("Status: %s", userStatus.c_str());
                         if (ImGui::Button("Logout")) {
                             Logout();
                         }
@@ -624,8 +647,8 @@ void gui::Render()
                     {
                         ImGui::Text("About");
                         ImGui::Separator();
-                        ImGui::Text("aBot Version: 2.0 Beta 1");
-                        ImGui::Text("Compilation Date: 19/05/2025");
+                        ImGui::Text("aBot Version: 2.0 Beta 6");
+                        ImGui::Text("Compile Date: 21/05/2025");
                         ImGui::Spacing();
                         ImGui::Text("Keybinds");
                         ImGui::Separator();

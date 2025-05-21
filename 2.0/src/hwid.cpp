@@ -3,6 +3,7 @@
 #include <wininet.h>
 #include <sstream>
 #include <iostream> // Optional: for debugging output
+#include "globals.h"
 
 #pragma comment(lib, "wininet.lib")
 
@@ -51,11 +52,27 @@ bool CheckCredentialsOnline(const std::string& user, const std::string& pass, co
 
     std::istringstream stream(fileContent);
     std::string line;
-    std::string target = user + " / " + pass + " / " + hwid;
 
     while (std::getline(stream, line)) {
-        if (line == target) {
-            return true;
+        std::istringstream lineStream(line);
+        std::string fileUser, filePass, fileHWID, fileStatus;
+
+        if (std::getline(lineStream, fileUser, '/') &&
+            std::getline(lineStream, filePass, '/') &&
+            std::getline(lineStream, fileHWID, '/') &&
+            std::getline(lineStream, fileStatus)) {
+            
+            // Trim whitespace
+            auto trim = [](std::string& s) {
+                s.erase(0, s.find_first_not_of(" \t\r\n"));
+                s.erase(s.find_last_not_of(" \t\r\n") + 1);
+            };
+            trim(fileUser); trim(filePass); trim(fileHWID); trim(fileStatus);
+
+            if (fileUser == user && filePass == pass && fileHWID == hwid) {
+                userStatus = fileStatus; // Optional: save status somewhere
+                return true;
+            }
         }
     }
 
