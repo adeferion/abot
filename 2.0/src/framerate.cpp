@@ -23,12 +23,13 @@ namespace framerate
                 return;
             }
 
-            if (!frameAdvance.enabled)
-            {
-                dt *= replay.speed_value;
-                const float newdt = 1.f / replay.fps_value / 1.f;
-                if (!replay.real_time)
-                    return CCScheduler_update(self, newdt);
+            if (frameAdvance.enabled) {
+                if (frameAdvance.triggered) {
+                    frameAdvance.triggered = false;
+                    CCScheduler_update(self, target_dt);
+                }
+                return;
+            }
 
                 g_disable_render = false;
 
@@ -45,7 +46,6 @@ namespace framerate
                     }
                 }
                 g_left_over += dt - newdt * times;
-            }
         }
         else
         {

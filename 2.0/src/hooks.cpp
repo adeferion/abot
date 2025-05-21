@@ -137,11 +137,13 @@ namespace hooks
         dispatchKeyboardMSG(self, key, down);
         auto pl = gd::GameManager::sharedState()->getPlayLayer();
 
-        if (pl && down && key == 'C') {
+        if (pl && down && key == 'C')
+        {
             frameAdvance.enabled = true;
             frameAdvance.triggered = true;
         }
-        else if (pl && down && key == 'F') {
+        else if (pl && down && key == 'F')
+        {
             frameAdvance.enabled = false;
         }
         else if (pl && down && key == 'S') {
